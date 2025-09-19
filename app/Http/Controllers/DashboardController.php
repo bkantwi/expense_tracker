@@ -50,9 +50,22 @@ class DashboardController extends Controller
             $stats['category_count'] = (int) $Category::where('user_id', $user->id)->count();
         }
 
+        $monthBudgets = collect();
+        if (Schema::hasTable('budgets') && Schema::hasTable('categories')) {
+            $Budget = app('App\\Models\\Budget');
+            $currentPeriod = Carbon::now()->startOfMonth()->toDateString();
+
+            $monthBudgets = $Budget::with('category')
+                ->where('user_id', $user->id)
+                ->where('period', $currentPeriod)
+                ->orderBy('category_id')
+                ->get();
+        }
+
         return view('dashboard', [
             'stats' => $stats,
             'recentExpenses' => $recentExpenses,
+            'monthBudgets' => $monthBudgets,
         ]);
     }
 }

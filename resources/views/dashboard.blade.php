@@ -49,6 +49,49 @@
                     icon="M4 4h6v6H4V4zm0 8h6v6H4v-6zm8-8h6v6h-6V4zm0 8h6v6h-6v-6z" />
             </div>
 
+            <div class="mt-8 bg-white shadow-sm rounded-lg overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-800">{{ __('Budgets (This Month)') }}</h3>
+                    <a href="{{ route('budgets.index', ['period' => now()->format('Y-m')], false) }}"
+                       class="text-sm text-indigo-600 hover:text-indigo-800">
+                        {{ __('Manage budgets') }} →
+                    </a>
+                </div>
+
+                @if(($monthBudgets ?? collect())->count() > 0)
+                    <div class="divide-y divide-gray-100">
+                        @foreach($monthBudgets as $b)
+                            @php
+                                $spent = $b->spent();
+                                $pct = $b->amount > 0 ? min(100, round(($spent / $b->amount) * 100)) : 0;
+                                $over = $spent > $b->amount;
+                            @endphp
+                            <div class="px-6 py-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="font-medium text-gray-900">{{ $b->category->name ?? '—' }}</div>
+                                    <div class="{{ $over ? 'text-red-600' : 'text-gray-700' }} text-sm">
+                                        ₵{{ number_format($spent,2) }} / ₵{{ number_format($b->amount,2) }}
+                                    </div>
+                                </div>
+                                <div class="w-full h-2 rounded bg-gray-100 overflow-hidden">
+                                    <div class="h-full {{ $over ? 'bg-red-500' : 'bg-indigo-600' }}" style="width: {{ $pct }}%"></div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="px-6 py-10 text-center text-gray-600">
+                        No budgets for this month yet.
+                        <div class="mt-4">
+                            <a href="{{ route('budgets.create') }}"
+                               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                                + Create Budget
+                            </a>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
             <!-- Recent -->
             <div class="mt-8 bg-white shadow-sm rounded-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
