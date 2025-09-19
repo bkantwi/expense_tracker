@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ExpenseRequest;
 use App\Models\Category;
 use App\Models\Expense;
+use App\Models\ExpenseAttachment;
 use App\Models\Recurrence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -45,8 +46,8 @@ class ExpenseController extends Controller
 
     public function store(ExpenseRequest $request)
     {
-        DB::transaction(function () use ($request) {
-            $expense = Expense::create([
+        $expense = DB::transaction(function () use ($request) {
+            $expense = \App\Models\Expense::create([
                 'user_id'     => Auth::id(),
                 'category_id' => $request->category_id,
                 'title'       => $request->title,
@@ -55,8 +56,9 @@ class ExpenseController extends Controller
                 'notes'       => $request->notes,
             ]);
 
+            // optional recurrence creation...
             if ($request->boolean('make_recurring')) {
-                Recurrence::create([
+                \App\Models\Recurrence::create([
                     'user_id'     => Auth::id(),
                     'category_id' => $expense->category_id,
                     'title'       => $expense->title,
@@ -68,9 +70,26 @@ class ExpenseController extends Controller
                     'active'      => true,
                 ]);
             }
+
+            // handle attachments (if any were uploaded on create)
+            if ($request->hasFile('files')) {
+                foreach ((array) $request->file('files') as $file) {
+                    $path = $file->store('receipts', 'public');
+                    ExpenseAttachment::create([
+                        'user_id'       => Auth::id(),
+                        'expense_id'    => $expense->id,
+                        'path'          => $path,
+                        'original_name' => $file->getClientOriginalName(),
+                        'mime_type'     => $file->getClientMimeType(),
+                        'size'          => $file->getSize(),
+                    ]);
+                }
+            }
+
+            return $expense;
         });
 
-        return redirect()->route('expenses.index')->with('success', 'Expense added.');
+        return redirect()->route('expenses.index')->with('success','Expense added.');
     }
 
     public function show(Expense $expense)

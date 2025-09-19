@@ -16,7 +16,8 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('expenses.store') }}" class="bg-white rounded-lg shadow-sm p-6 space-y-4">
+            <form method="POST" action="{{ route('expenses.store') }}" enctype="multipart/form-data"
+                  class="bg-white rounded-lg shadow-sm p-6 space-y-4">
                 @csrf
 
                 <div>
@@ -82,6 +83,11 @@
                     </div>
                 </div>
 
+                <hr class="my-6">
+                <h4 class="font-semibold text-gray-800 mb-2">Receipts</h4>
+                <input type="file" name="files[]" multiple
+                       class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" />
+                <p class="text-xs text-gray-500 mt-1">Accepted: JPG, PNG, WEBP, PDF. Max 5MB each.</p>
 
                 <div class="flex items-center gap-3">
                     <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button>

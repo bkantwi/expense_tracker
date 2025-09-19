@@ -3,6 +3,7 @@
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExpenseAttachmentController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecurrenceController;
@@ -27,6 +28,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/export', [ReportsController::class, 'export'])->name('reports.export');
 
     Route::resource('recurrences', RecurrenceController::class);
+
+    Route::post('/expenses/{expense}/attachments', [ExpenseAttachmentController::class, 'store'])->name('expenses.attachments.store');
+    Route::get('/attachments/{attachment}/download', [ExpenseAttachmentController::class, 'download'])->name('attachments.download');
+    Route::delete('/attachments/{attachment}', [ExpenseAttachmentController::class, 'destroy'])->name('attachments.destroy');
 });
 
 require __DIR__.'/auth.php';
