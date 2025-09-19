@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ExpenseRequest;
 use App\Models\Category;
 use App\Models\Expense;
+use App\Models\Recurrence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ExpenseController extends Controller
 {
@@ -43,16 +45,32 @@ class ExpenseController extends Controller
 
     public function store(ExpenseRequest $request)
     {
-        Expense::create([
-            'user_id' => Auth::id(),
-            'category_id' => $request->category_id,
-            'title' => $request->title,
-            'amount' => $request->amount,
-            'spent_at' => $request->spent_at,
-            'notes' => $request->notes,
-        ]);
+        DB::transaction(function () use ($request) {
+            $expense = Expense::create([
+                'user_id'     => Auth::id(),
+                'category_id' => $request->category_id,
+                'title'       => $request->title,
+                'amount'      => $request->amount,
+                'spent_at'    => $request->spent_at,
+                'notes'       => $request->notes,
+            ]);
 
-        return redirect()->route('expenses.index')->with('success','Expense added.');
+            if ($request->boolean('make_recurring')) {
+                Recurrence::create([
+                    'user_id'     => Auth::id(),
+                    'category_id' => $expense->category_id,
+                    'title'       => $expense->title,
+                    'amount'      => $expense->amount,
+                    'cadence'     => $request->input('recurrence_cadence', 'monthly'),
+                    'interval'    => (int) $request->input('recurrence_interval', 1),
+                    'next_run_on' => $request->input('recurrence_next_run_on', now()->toDateString()),
+                    'notes'       => $expense->notes,
+                    'active'      => true,
+                ]);
+            }
+        });
+
+        return redirect()->route('expenses.index')->with('success', 'Expense added.');
     }
 
     public function show(Expense $expense)

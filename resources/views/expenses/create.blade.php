@@ -55,6 +55,34 @@
                               class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">{{ old('notes') }}</textarea>
                 </div>
 
+                <hr class="my-6">
+
+                <h4 class="font-semibold text-gray-800 mb-2">Make this expense recurring</h4>
+                <label class="inline-flex items-center mb-3">
+                    <input type="checkbox" name="make_recurring" value="1" class="rounded border-gray-300 text-indigo-600">
+                    <span class="ml-2 text-gray-700">Repeat this expense</span>
+                </label>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Cadence</label>
+                        <select name="recurrence_cadence" class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                            @foreach(['daily','weekly','monthly','quarterly','yearly'] as $opt)
+                                <option value="{{ $opt }}">{{ ucfirst($opt) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Every</label>
+                        <input type="number" name="recurrence_interval" min="1" value="1" class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Next run on</label>
+                        <input type="date" name="recurrence_next_run_on" value="{{ now()->toDateString() }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" />
+                    </div>
+                </div>
+
+
                 <div class="flex items-center gap-3">
                     <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button>
                     <a href="{{ route('expenses.index') }}" class="px-4 py-2 rounded-lg border hover:bg-gray-50">Cancel</a>

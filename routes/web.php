@@ -5,6 +5,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RecurrenceController;
 use App\Http\Controllers\ReportsController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +25,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [ReportsController::class, 'export'])->name('reports.export');
+
+    Route::resource('recurrences', RecurrenceController::class);
 });
 
 require __DIR__.'/auth.php';
