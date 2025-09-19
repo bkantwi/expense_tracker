@@ -11,13 +11,17 @@ class CheckBudgetAlerts extends Command
     protected $signature = 'budgets:check-alerts {--date=} {--user=}';
     protected $description = 'Compute spend vs budget for the current month and send alerts at thresholds';
 
-    public function handle(BudgetAlertService $svc): int
+    public function handle(\App\Services\BudgetAlertService $svc): int
     {
-        $date   = $this->option('date') ? Carbon::parse($this->option('date')) : now();
+        $date   = $this->option('date') ? \Illuminate\Support\Carbon::parse($this->option('date')) : now();
         $userId = $this->option('user') ? (int) $this->option('user') : null;
 
         $out = $svc->check($date, $userId);
-        $this->info("Checked: {$out['checked']}  Notified: {$out['notified']}");
+
+        // Print on separate lines so tests can match each token reliably
+        $this->line('Checked: ' . $out['checked']);
+        $this->line('Notified: ' . $out['notified']);
+
         return self::SUCCESS;
     }
 }
