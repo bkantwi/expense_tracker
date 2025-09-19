@@ -1,3 +1,4 @@
+<x-flash />
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
@@ -41,7 +42,7 @@
                 <x-dashboard.stat
                     title="Total Expenses"
                     :value="$stats['total_count']"
-                    icon="M4 6h12M4 10h12M4 14h12" />
+                    icon="M17 12h-2v2h2V12zm-4 0H9v2h4V12zm-4 0H5v2h4V12zM19 8h-2V6h2v2zm-4 0H9V6h6v2zm-6 0H5V6h4v2z" />
 
                 <x-dashboard.stat
                     title="Categories"
