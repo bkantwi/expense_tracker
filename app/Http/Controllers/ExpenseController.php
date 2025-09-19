@@ -2,64 +2,80 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ExpenseRequest;
+use App\Models\Category;
 use App\Models\Expense;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ExpenseController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct()
     {
-        //
+        // Requires base Controller to use AuthorizesRequests
+        $this->authorizeResource(Expense::class, 'expense');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    public function index(Request $request)
+    {
+        // List my expenses, filterable by q (title) and category
+        $expenses = Expense::with('category')
+            ->where('user_id', Auth::id())
+            ->when($request->get('q'), fn($q, $term) => $q->where('title','like',"%{$term}%"))
+            ->when($request->get('category_id'), fn($q, $cid) => $q->where('category_id',$cid))
+            ->orderByDesc('spent_at')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
+
+        // For filter dropdown
+        $categories = Category::where('user_id', Auth::id())->orderBy('name')->get(['id','name']);
+
+        return view('expenses.index', compact('expenses','categories'));
+    }
+
     public function create()
     {
-        //
+        // If user has no categories, encourage creating one first
+        $categories = Category::where('user_id', Auth::id())->orderBy('name')->get(['id','name']);
+        return view('expenses.create', compact('categories'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(ExpenseRequest $request)
     {
-        //
+        Expense::create([
+            'user_id' => Auth::id(),
+            'category_id' => $request->category_id,
+            'title' => $request->title,
+            'amount' => $request->amount,
+            'spent_at' => $request->spent_at,
+            'notes' => $request->notes,
+        ]);
+
+        return redirect()->route('expenses.index')->with('success','Expense added.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Expense $expense)
     {
-        //
+        // Optional detailed view
+        return view('expenses.show', compact('expense'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Expense $expense)
     {
-        //
+        $categories = Category::where('user_id', Auth::id())->orderBy('name')->get(['id','name']);
+        return view('expenses.edit', compact('expense','categories'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Expense $expense)
+    public function update(ExpenseRequest $request, Expense $expense)
     {
-        //
+        $expense->update($request->validated());
+        return redirect()->route('expenses.index')->with('success','Expense updated.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Expense $expense)
     {
-        //
+        $expense->delete();
+        return redirect()->route('expenses.index')->with('success','Expense deleted.');
     }
 }
