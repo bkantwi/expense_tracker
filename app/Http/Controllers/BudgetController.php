@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\BudgetRequest;
 use App\Models\Budget;
 use App\Models\Category;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -66,9 +67,30 @@ class BudgetController extends Controller
         return view('budgets.edit', compact('budget','categories'));
     }
 
-    public function update(BudgetRequest $request, Budget $budget)
+    /**
+     * @throws AuthorizationException
+     */
+// app/Http/Controllers/BudgetController.php
+
+    public function update(BudgetRequest $request, \App\Models\Budget $budget)
     {
-        $budget->update($request->validated());
+        $this->authorize('update', $budget);
+
+        $data = $request->validated();
+        $dirtyKeys = ['amount','period','alerts_enabled','warn_threshold','at_threshold','over_threshold'];
+
+        $changed = collect($dirtyKeys)->some(fn($k) => array_key_exists($k,$data) && $budget->{$k} != $data[$k]);
+
+        $budget->update($data);
+
+        if ($changed) {
+            $budget->update([
+                'warn_sent_at' => null,
+                'at_sent_at'   => null,
+                'over_sent_at' => null,
+            ]);
+        }
+
         return redirect()->route('budgets.index')->with('success', 'Budget updated.');
     }
 

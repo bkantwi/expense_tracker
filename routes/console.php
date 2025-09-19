@@ -11,3 +11,6 @@ Artisan::command('inspire', function () {
 Schedule::command('expenses:run-recurrences')
     ->dailyAt('00:10')
     ->timezone('Africa/Accra');
+
+Schedule::command('budgets:check-alerts')
+    ->dailyAt('00:20');

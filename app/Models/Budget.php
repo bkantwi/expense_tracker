@@ -11,10 +11,22 @@ class Budget extends Model
 
     protected $table = 'budgets';
 
-    protected $fillable = ['user_id','category_id','period','amount'];
+    protected $fillable = [
+        'user_id','category_id','period','amount',
+        'alerts_enabled','warn_threshold','at_threshold','over_threshold',
+        'warn_sent_at','at_sent_at','over_sent_at',
+    ];
 
     protected $casts = [
-        'period' => 'date',
+        'period'         => 'date',
+        'amount'         => 'decimal:2',
+        'alerts_enabled' => 'boolean',
+        'warn_threshold' => 'integer',
+        'at_threshold'   => 'integer',
+        'over_threshold' => 'integer',
+        'warn_sent_at'   => 'datetime',
+        'at_sent_at'     => 'datetime',
+        'over_sent_at'   => 'datetime',
     ];
 
     public function user() { return $this->belongsTo(User::class); }

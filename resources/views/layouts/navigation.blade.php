@@ -23,6 +23,45 @@
                 </div>
             </div>
 
+            @auth
+                @php
+                    $unreadCount = auth()->user()->unreadNotifications()->count();
+                    $recent = auth()->user()->notifications()->limit(10)->get();
+                @endphp
+                <div class="relative">
+                    <button type="button" class="relative rounded-full p-2 hover:bg-gray-100" onclick="document.getElementById('notif-dd').classList.toggle('hidden')">
+                        <!-- bell icon -->
+                        <svg class="w-6 h-6 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a6 6 0 00-6 6v3H3a1 1 0 000 2h14a1 1 0 000-2h-1V8a6 6 0 00-6-6zM7 16a3 3 0 006 0H7z"/></svg>
+                        @if($unreadCount>0)
+                            <span class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5">{{ $unreadCount }}</span>
+                        @endif
+                    </button>
+                    <div id="notif-dd" class="hidden absolute right-0 mt-2 w-80 bg-white shadow-lg rounded-lg border">
+                        <div class="px-4 py-2 font-semibold border-b">Notifications</div>
+                        <div class="max-h-80 overflow-auto">
+                            @forelse($recent as $n)
+                                <div class="px-4 py-3 border-b text-sm {{ $n->read() ? 'text-gray-600' : 'text-gray-900' }}">
+                                    @php $d = $n->data; @endphp
+                                    @if(($d['level'] ?? '') === 'over')
+                                        <span class="text-red-600 font-medium">Over budget</span>
+                                    @elseif(($d['level'] ?? '') === 'at')
+                                        <span class="text-orange-600 font-medium">At budget</span>
+                                    @else
+                                        <span class="text-yellow-600 font-medium">Warning</span>
+                                    @endif
+                                    — {{ $d['category'] ?? 'Budget' }} ({{ \Illuminate\Support\Str::of($d['period'] ?? '')->substr(0,7) }})
+                                    <div class="text-xs text-gray-600">
+                                        Spent ₵{{ number_format($d['spent'] ?? 0,2) }} of ₵{{ number_format($d['amount'] ?? 0,2) }} ({{ $d['percent'] ?? 0 }}%)
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="px-4 py-6 text-sm text-gray-600">No notifications yet.</div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            @endauth
+
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
