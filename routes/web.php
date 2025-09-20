@@ -8,6 +8,8 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecurrenceController;
 use App\Http\Controllers\ReportsController;
+use Illuminate\Http\Request;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -32,6 +34,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/expenses/{expense}/attachments', [ExpenseAttachmentController::class, 'store'])->name('expenses.attachments.store');
     Route::get('/attachments/{attachment}/download', [ExpenseAttachmentController::class, 'download'])->name('attachments.download');
     Route::delete('/attachments/{attachment}', [ExpenseAttachmentController::class, 'destroy'])->name('attachments.destroy');
+
+    // Mark all as read
+    Route::post('/notifications/read-all', function (Request $request) {
+        $request->user()->unreadNotifications()->update(['read_at' => now()]);
+        return response()->json(['ok' => true]);
+    })->name('notifications.read-all');
+    // (Optional) mark one as read on click
+    Route::post('/notifications/{notification}/read', function (Request $request, DatabaseNotification $notification) {
+        abort_unless($notification->notifiable_id === $request->user()->id, 403);
+        if (is_null($notification->read_at)) {
+            $notification->markAsRead();
+        }
+        return back();
+    })->name('notifications.read');
 });
 
 require __DIR__.'/auth.php';
