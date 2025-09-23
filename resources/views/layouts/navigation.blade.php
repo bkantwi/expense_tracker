@@ -17,6 +17,22 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
+                    <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.index')">
+                        {{ __('Categories') }}
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('accounts.index')" :active="request()->routeIs('accounts.index')">
+                        {{ __('Account Types') }}
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('budgets.index')" :active="request()->routeIs('budgets.index')">
+                        {{ __('Budgets') }}
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.index')">
+                        {{ __('Expenses') }}
+                    </x-nav-link>
+
                     <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                         {{ __('Reports') }}
                     </x-nav-link>
@@ -156,6 +172,18 @@
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.index')">
+                {{ __('Category') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('accounts.index')" :active="request()->routeIs('accounts.index')">
+                {{ __('Account Types') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('budgets.index')" :active="request()->routeIs('budgets.index')">
+                {{ __('Budgets') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.index')">
+                {{ __('Expenses') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                 {{ __('Reports') }}

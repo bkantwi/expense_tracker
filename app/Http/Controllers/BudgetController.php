@@ -18,43 +18,60 @@ class BudgetController extends Controller
 
     public function index(Request $request)
     {
-        // Optional filters: month (YYYY-MM) and category
-        $period = $request->get('period'); // e.g., "2025-09"
+        $period = $request->get('period');     // "YYYY-MM"
         $categoryId = $request->get('category_id');
+        $accountId  = $request->get('account_id');
 
-        $budgets = Budget::with('category')
+        $budgets = Budget::with(['category','account'])
             ->where('user_id', Auth::id())
             ->when($period && preg_match('/^\d{4}-\d{2}$/', $period), function($q) use ($period) {
                 $q->where('period', \Illuminate\Support\Carbon::createFromFormat('Y-m', $period)->startOfMonth()->toDateString());
             })
             ->when($categoryId, fn($q, $cid) => $q->where('category_id', $cid))
+            ->when($accountId,  fn($q, $aid) => $q->where('account_id',  $aid))
             ->orderByDesc('period')
             ->orderBy('category_id')
             ->paginate(12)
             ->withQueryString();
 
         $categories = Category::where('user_id', Auth::id())->orderBy('name')->get(['id','name']);
+        $accounts = \App\Models\Account::where('user_id', Auth::id())
+            ->where('archived', false)->orderBy('name')->get(['id','name','currency']);
 
-        return view('budgets.index', compact('budgets','categories','period','categoryId'));
+        return view('budgets.index', compact('budgets','categories','accounts','period','categoryId','accountId'));
     }
 
     public function create()
     {
-        $categories = Category::where('user_id', Auth::id())->orderBy('name')->get(['id','name']);
-        return view('budgets.create', compact('categories'));
+        $categories = Category::where('user_id', Auth::id())
+            ->orderBy('name')
+            ->get(['id','name']);
+
+        $accounts = \App\Models\Account::where('user_id', Auth::id())
+            ->where('archived', false)
+            ->orderBy('name')
+            ->get(['id','name','currency']);
+
+        return view('budgets.create', compact('categories','accounts'));
     }
 
     public function store(BudgetRequest $request)
     {
         Budget::create([
-            'user_id' => Auth::id(),
+            'user_id'     => Auth::id(),
             'category_id' => $request->category_id,
-            'period' => $request->period,
-            'amount' => $request->amount,
+            'account_id'  => $request->account_id, // ✅
+            'period'      => $request->period,
+            'amount'      => $request->amount,
+            'alerts_enabled' => $request->boolean('alerts_enabled', false),
+            'warn_threshold' => $request->input('warn_threshold'),
+            'at_threshold'   => $request->input('at_threshold'),
+            'over_threshold' => $request->input('over_threshold'),
         ]);
 
         return redirect()->route('budgets.index')->with('success', 'Budget created.');
     }
+
 
     public function show(Budget $budget)
     {
@@ -64,7 +81,12 @@ class BudgetController extends Controller
     public function edit(Budget $budget)
     {
         $categories = Category::where('user_id', Auth::id())->orderBy('name')->get(['id','name']);
-        return view('budgets.edit', compact('budget','categories'));
+        $accounts = \App\Models\Account::where('user_id', Auth::id())
+            ->where('archived', false)
+            ->orderBy('name')
+            ->get(['id','name','currency']);
+
+        return view('budgets.edit', compact('budget','categories','accounts'));
     }
 
     /**

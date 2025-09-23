@@ -24,6 +24,11 @@ class BudgetRequest extends FormRequest
                 Rule::exists('categories', 'id')->where(fn ($q) => $q->where('user_id', $userId)),
             ],
 
+            'account_id' => [
+                'required',
+                Rule::exists('accounts', 'id')->where(fn ($q) => $q->where('user_id', $userId)),
+                ],
+
             // Browser posts "YYYY-MM" from <input type="month">
             'period' => ['required', 'date_format:Y-m'],
 
@@ -70,6 +75,7 @@ class BudgetRequest extends FormRequest
             // Uniqueness (skip current model on update)
             $exists = Budget::where('user_id', $this->user()->id)
                 ->where('category_id', $this->input('category_id'))
+                ->where('account_id', $this->input('account_id'))
                 ->when($normalized, fn ($q) => $q->whereDate('period', $normalized))
                 ->when($this->route('budget'), fn ($q) => $q->where('id', '!=', $this->route('budget')->id))
                 ->exists();

@@ -10,8 +10,21 @@
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <x-flash />
 
+            {{-- Assuming $accounts is passed from controller: Account::where('user_id', Auth::id())->where('archived', false)->orderBy('name')->get() --}}
+            <label class="block text-sm font-medium text-gray-700">Account</label>
+
             <form method="POST" action="{{ route('budgets.store') }}" class="bg-white rounded-lg shadow-sm p-6 space-y-4">
                 @csrf
+
+                <select name="account_id" class="mt-1 block w-full rounded-md border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">— Select account —</option>
+                    @foreach($accounts as $acc)
+                        <option value="{{ $acc->id }}" @selected(old('account_id', $expense->account_id ?? null) == $acc->id)>
+                            {{ $acc->name }} ({{ $acc->currency }})
+                        </option>
+                    @endforeach
+                </select>
+                @error('account_id') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Category</label>

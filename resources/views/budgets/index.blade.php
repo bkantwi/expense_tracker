@@ -38,9 +38,13 @@
                     @endphp
                     <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
                         <div class="flex items-center justify-between mb-1">
-                            <div class="font-semibold text-gray-900">{{ $b->category->name ?? '—' }}</div>
+                            <div class="font-semibold text-gray-900">
+                                {{ $b->category->name ?? '—' }}
+                                <span class="text-xs ml-2 px-2 py-0.5 rounded bg-gray-100 text-gray-700">{{ $b->account->name ?? '—' }}</span>
+                            </div>
                             <div class="text-sm text-gray-500">{{ $b->period->format('M Y') }}</div>
                         </div>
+
                         <div class="text-sm text-gray-600 mb-2">
                             Budget: <span class="font-medium">₵{{ number_format($b->amount,2) }}</span>
                         </div>
@@ -74,7 +78,7 @@
                 @endforelse
             </div>
 
-            <div class="mt-4">{{ $budgets->links() }}</div>
+            <div    class="mt-4">{{ $budgets->links() }}</div>
         </div>
     </div>
 </x-app-layout>

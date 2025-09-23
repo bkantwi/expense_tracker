@@ -29,8 +29,18 @@ class Budget extends Model
         'over_sent_at'   => 'datetime',
     ];
 
-    public function user() { return $this->belongsTo(User::class); }
-    public function category() { return $this->belongsTo(Category::class); }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+    public function account()
+    {
+        return $this->belongsTo(Account::class);
+    }
 
     /**
      * Calculate how much was spent in this budget's month for its category.
@@ -43,6 +53,7 @@ class Budget extends Model
 
         return (float) \App\Models\Expense::where('user_id', $this->user_id)
             ->where('category_id', $this->category_id)
+            ->where('account_id', $this->account_id)
             ->whereBetween('spent_at', [$start->toDateString(), $end->toDateString()])
             ->sum('amount');
     }

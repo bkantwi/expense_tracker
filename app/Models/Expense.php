@@ -9,17 +9,24 @@ class Expense extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title','amount','category_id','user_id','spent_at','notes'];
+    protected $fillable = ['title','amount','category_id','user_id','spent_at','notes', 'account_id'];
 
     protected $casts = [
         'spent_at' => 'date',
     ];
 
-    public function user() {
+    public function account()
+    {
+        return $this->belongsTo(Account::class);
+    }
+
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function category() {
+    public function category()
+    {
         return $this->belongsTo(Category::class);
     }
 

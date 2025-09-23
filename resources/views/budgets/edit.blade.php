@@ -15,6 +15,16 @@
             <form method="POST" action="{{ route('budgets.update', $budget) }}" class="bg-white rounded-lg shadow-sm p-6 space-y-4">
                 @csrf @method('PUT')
 
+                <select name="account_id" class="mt-1 block w-full rounded-md border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">— Select account —</option>
+                    @foreach($accounts as $acc)
+                        <option value="{{ $acc->id }}" @selected(old('account_id', $expense->account_id ?? null) == $acc->id)>
+                            {{ $acc->name }} ({{ $acc->currency }})
+                        </option>
+                    @endforeach
+                </select>
+                @error('account_id') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Category</label>
                     <select name="category_id" required

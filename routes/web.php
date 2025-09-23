@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\ExpenseImportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecurrenceController;
 use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\TransferController;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Route;
@@ -54,6 +56,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/imports/expenses', [ExpenseImportController::class, 'index'])->name('expenses.import.index');
     Route::post('/imports/expenses/preview', [ExpenseImportController::class, 'preview'])->name('expenses.import.preview');
     Route::post('/imports/expenses/commit', [ExpenseImportController::class, 'commit'])->name('expenses.import.commit');
+
+    Route::get('/accounts', [AccountController::class, 'index'])->name('accounts.index');
+    Route::post('/accounts', [AccountController::class, 'store'])->name('accounts.store');
+    Route::patch('/accounts/{account}', [AccountController::class, 'update'])->name('accounts.update');
+    Route::delete('/accounts/{account}', [AccountController::class, 'destroy'])->name('accounts.destroy');
+
+    Route::post('/transfers', [TransferController::class, 'store'])->name('transfers.store');
 });
 
 require __DIR__.'/auth.php';
