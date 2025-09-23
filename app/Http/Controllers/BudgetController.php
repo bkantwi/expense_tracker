@@ -57,21 +57,17 @@ class BudgetController extends Controller
 
     public function store(BudgetRequest $request)
     {
+
         Budget::create([
-            'user_id'     => Auth::id(),
-            'category_id' => $request->category_id,
-            'account_id'  => $request->account_id, // ✅
-            'period'      => $request->period,
-            'amount'      => $request->amount,
-            'alerts_enabled' => $request->boolean('alerts_enabled', false),
-            'warn_threshold' => $request->input('warn_threshold'),
-            'at_threshold'   => $request->input('at_threshold'),
-            'over_threshold' => $request->input('over_threshold'),
+            'user_id'        => Auth::id(),
+            'category_id'    => $request->category_id,
+            'account_id'     => $request->account_id,
+            'period'         => $request->period,
+            'amount'         => $request->amount,
         ]);
 
         return redirect()->route('budgets.index')->with('success', 'Budget created.');
     }
-
 
     public function show(Budget $budget)
     {
@@ -99,8 +95,21 @@ class BudgetController extends Controller
         $this->authorize('update', $budget);
 
         $data = $request->validated();
-        $dirtyKeys = ['amount','period','alerts_enabled','warn_threshold','at_threshold','over_threshold'];
+        $enabled = $request->boolean('alerts_enabled');
 
+        // If alerts are off, drop thresholds to NULL so DB stays consistent
+        if (!$enabled) {
+            $data['warn_threshold'] = null;
+            $data['at_threshold']   = null;
+            $data['over_threshold'] = null;
+        } else {
+            // Ensure ints are present even if browser sent empty strings
+            $data['warn_threshold'] = (int)($data['warn_threshold'] ?? 80);
+            $data['at_threshold']   = (int)($data['at_threshold']   ?? 100);
+            $data['over_threshold'] = (int)($data['over_threshold'] ?? 110);
+        }
+
+        $dirtyKeys = ['amount','period','alerts_enabled','warn_threshold','at_threshold','over_threshold'];
         $changed = collect($dirtyKeys)->some(fn($k) => array_key_exists($k,$data) && $budget->{$k} != $data[$k]);
 
         $budget->update($data);

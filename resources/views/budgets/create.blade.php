@@ -10,21 +10,22 @@
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <x-flash />
 
-            {{-- Assuming $accounts is passed from controller: Account::where('user_id', Auth::id())->where('archived', false)->orderBy('name')->get() --}}
-            <label class="block text-sm font-medium text-gray-700">Account</label>
-
             <form method="POST" action="{{ route('budgets.store') }}" class="bg-white rounded-lg shadow-sm p-6 space-y-4">
                 @csrf
 
-                <select name="account_id" class="mt-1 block w-full rounded-md border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="">— Select account —</option>
-                    @foreach($accounts as $acc)
-                        <option value="{{ $acc->id }}" @selected(old('account_id', $expense->account_id ?? null) == $acc->id)>
-                            {{ $acc->name }} ({{ $acc->currency }})
-                        </option>
-                    @endforeach
-                </select>
-                @error('account_id') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+                <div> {{-- Wrap in a div for consistent spacing --}}
+                    <label class="block text-sm font-medium text-gray-700">Account</label>
+                    <select name="account_id" required class="mt-1 block w-full rounded-md border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">— Select account —</option>
+                        @foreach($accounts as $acc)
+                            {{-- ✅ FIX: Removed reference to `$expense` --}}
+                            <option value="{{ $acc->id }}" @selected(old('account_id') == $acc->id)>
+                                {{ $acc->name }} ({{ $acc->currency }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('account_id') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+                </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Category</label>
@@ -32,7 +33,7 @@
                             class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
                         <option value="">Select category</option>
                         @foreach($categories as $c)
-                            <option value="{{ $c->id }}" @selected(old('category_id')==$c->id)>{{ $c->name }}</option>
+                            <option value="{{ $c->id }}" @selected(old('category_id') == $c->id)>{{ $c->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -40,14 +41,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Month</label>
-                        <input type="month"
-                               name="period"
-                               value="{{ old('period', now()->format('Y-m')) }}"
-                               required
+                        <input type="month" name="period"
+                               value="{{ old('period', now()->format('Y-m')) }}" required
                                class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" />
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Amount (GHS)</label>
+                        <label class="block text-sm font-medium text-gray-700">Amount</label>
                         <input type="number" step="0.01" min="0.01" name="amount" value="{{ old('amount') }}" required
                                class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" />
                     </div>

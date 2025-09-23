@@ -14,7 +14,7 @@ class Budget extends Model
     protected $fillable = [
         'user_id','category_id','period','amount',
         'alerts_enabled','warn_threshold','at_threshold','over_threshold',
-        'warn_sent_at','at_sent_at','over_sent_at',
+        'warn_sent_at','at_sent_at','over_sent_at', 'account_id'
     ];
 
     protected $casts = [
