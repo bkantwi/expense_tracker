@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
-            DefaultAccountsSeeder::class,
+//            DefaultAccountsSeeder::class,
         ]);
     }
 }
