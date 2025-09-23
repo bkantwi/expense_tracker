@@ -4,10 +4,18 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Expenses') }}</h2>
-            <a href="{{ route('expenses.create') }}"
-               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                + {{ __('Add Expense') }}
-            </a>
+
+            <div class="flex items-center gap-2">
+                <a href="{{ route('expenses.import.index') }}"
+                   class="inline-flex items-center px-4 py-2 border rounded-lg bg-white text-gray-700 hover:bg-gray-50">
+                    Import CSV
+                </a>
+
+                <a href="{{ route('expenses.create') }}"
+                   class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                    + {{ __('Add Expense') }}
+                </a>
+            </div>
         </div>
     </x-slot>
 

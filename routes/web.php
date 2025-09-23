@@ -5,6 +5,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseAttachmentController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ExpenseImportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecurrenceController;
 use App\Http\Controllers\ReportsController;
@@ -48,6 +49,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         }
         return back();
     })->name('notifications.read');
+
+//    CSV Import
+    Route::get('/imports/expenses', [ExpenseImportController::class, 'index'])->name('expenses.import.index');
+    Route::post('/imports/expenses/preview', [ExpenseImportController::class, 'preview'])->name('expenses.import.preview');
+    Route::post('/imports/expenses/commit', [ExpenseImportController::class, 'commit'])->name('expenses.import.commit');
 });
 
 require __DIR__.'/auth.php';
