@@ -25,20 +25,36 @@ class BudgetController extends Controller
         $budgets = Budget::with(['category','account'])
             ->where('user_id', Auth::id())
             ->when($period && preg_match('/^\d{4}-\d{2}$/', $period), function($q) use ($period) {
-                $q->where('period', \Illuminate\Support\Carbon::createFromFormat('Y-m', $period)->startOfMonth()->toDateString());
+                $start = \Illuminate\Support\Carbon::createFromFormat('Y-m', $period)->startOfMonth();
+                $end = $start->copy()->endOfMonth();
+                $q->whereBetween('period', [
+                    $start->startOfDay(),
+                    $end->endOfDay()
+                ]);
             })
             ->when($categoryId, fn($q, $cid) => $q->where('category_id', $cid))
             ->when($accountId,  fn($q, $aid) => $q->where('account_id',  $aid))
             ->orderByDesc('period')
             ->orderBy('category_id')
-            ->paginate(12)
+            ->paginate(50)
             ->withQueryString();
+
+        // If no specific filters (except user_id) are present AND it's a grouped-only request (or we decide based on no filters)
+        // We'll pass both, and the view will decide.
+        $monthlyGroups = null;
+        if (!$period && !$categoryId && !$accountId) {
+            $monthlyGroups = Budget::where('user_id', Auth::id())
+                ->selectRaw('period, sum(amount) as total_budget')
+                ->groupBy('period')
+                ->orderByDesc('period')
+                ->get();
+        }
 
         $categories = Category::where('user_id', Auth::id())->orderBy('name')->get(['id','name']);
         $accounts = \App\Models\Account::where('user_id', Auth::id())
             ->where('archived', false)->orderBy('name')->get(['id','name','currency']);
 
-        return view('budgets.index', compact('budgets','categories','accounts','period','categoryId','accountId'));
+        return view('budgets.index', compact('budgets','monthlyGroups','categories','accounts','period','categoryId','accountId'));
     }
 
     public function create()

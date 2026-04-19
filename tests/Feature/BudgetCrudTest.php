@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
@@ -15,9 +16,23 @@ class BudgetCrudTest extends TestCase
 
     private function verifiedUser(array $overrides = []): User
     {
-        return User::factory()->create(array_merge([
+        $user = User::factory()->create(array_merge([
             'email_verified_at' => now(),
         ], $overrides));
+
+        // Create a default account for tests if none exists
+        if ($user->accounts()->count() === 0) {
+            Account::create([
+                'user_id' => $user->id,
+                'name' => 'Main Account',
+                'type' => 'bank',
+                'currency' => 'GHS',
+                'starting_balance' => 0,
+                'archived' => false,
+            ]);
+        }
+
+        return $user;
     }
 
     /* ---------------- Guests ---------------- */
@@ -34,11 +49,13 @@ class BudgetCrudTest extends TestCase
     {
         $me = $this->verifiedUser();
         $cat = Category::create(['user_id' => $me->id, 'name' => 'Food']);
+        $acc = $me->accounts()->first();
 
         $month = Carbon::now()->format('Y-m'); // e.g., "2025-09"
 
         $this->actingAs($me)->post(route('budgets.store'), [
             'category_id' => $cat->id,
+            'account_id'  => $acc->id,
             'period'      => $month,       // send Y-m from <input type="month">
             'amount'      => 55.00,
         ])->assertRedirect(route('budgets.index'));
@@ -47,6 +64,7 @@ class BudgetCrudTest extends TestCase
         $this->assertDatabaseHas('budgets', [
             'user_id'     => $me->id,
             'category_id' => $cat->id,
+            'account_id'  => $acc->id,
             'period'      => \Illuminate\Support\Carbon::createFromFormat('Y-m', $month)
                 ->startOfMonth()
                 ->toDateTimeString(), // "YYYY-MM-DD 00:00:00"
@@ -60,9 +78,11 @@ class BudgetCrudTest extends TestCase
         $them = $this->verifiedUser(['email' => 'them@example.com']);
 
         $othersCat = Category::create(['user_id' => $them->id, 'name' => 'Their Cat']);
+        $acc = $me->accounts()->first();
 
         $this->actingAs($me)->post(route('budgets.store'), [
             'category_id' => $othersCat->id,
+            'account_id'  => $acc->id,
             'period'      => now()->format('Y-m'),
             'amount'      => 10,
         ])->assertSessionHasErrors('category_id');
@@ -72,10 +92,12 @@ class BudgetCrudTest extends TestCase
     {
         $me  = $this->verifiedUser();
         $cat = Category::create(['user_id' => $me->id, 'name' => 'Transport']);
+        $acc = $me->accounts()->first();
 
         $month = now()->format('Y-m');
         $this->actingAs($me)->post(route('budgets.store'), [
             'category_id' => $cat->id,
+            'account_id'  => $acc->id,
             'period'      => $month,
             'amount'      => 100,
         ])->assertRedirect();
@@ -83,6 +105,7 @@ class BudgetCrudTest extends TestCase
         // Try duplicate
         $this->actingAs($me)->post(route('budgets.store'), [
             'category_id' => $cat->id,
+            'account_id'  => $acc->id,
             'period'      => $month,
             'amount'      => 80,
         ])->assertSessionHasErrors('period');
@@ -96,15 +119,17 @@ class BudgetCrudTest extends TestCase
         // Same name but different owners => different category ids
         $catA = Category::create(['user_id' => $a->id, 'name' => 'Rent']);
         $catB = Category::create(['user_id' => $b->id, 'name' => 'Rent']);
+        $accA = $a->accounts()->first();
+        $accB = $b->accounts()->first();
 
         $month = now()->format('Y-m');
 
         $this->actingAs($a)->post(route('budgets.store'), [
-            'category_id' => $catA->id, 'period' => $month, 'amount' => 300,
+            'category_id' => $catA->id, 'account_id' => $accA->id, 'period' => $month, 'amount' => 300,
         ])->assertRedirect();
 
         $this->actingAs($b)->post(route('budgets.store'), [
-            'category_id' => $catB->id, 'period' => $month, 'amount' => 450,
+            'category_id' => $catB->id, 'account_id' => $accB->id, 'period' => $month, 'amount' => 450,
         ])->assertRedirect();
 
         $this->assertDatabaseCount('budgets', 2);
@@ -119,17 +144,23 @@ class BudgetCrudTest extends TestCase
 
         $myCat    = Category::create(['user_id' => $me->id, 'name' => 'MineCat']);
         $theirCat = Category::create(['user_id' => $them->id, 'name' => 'TheirCat']);
+        $myAcc    = $me->accounts()->first();
+        $theirAcc = $them->accounts()->first();
+
+        $month = now()->startOfMonth()->toDateString();
+        $monthQuery = now()->format('Y-m');
 
         Budget::create([
-            'user_id' => $me->id, 'category_id' => $myCat->id,
-            'period'  => now()->startOfMonth()->toDateString(), 'amount' => 123,
+            'user_id' => $me->id, 'category_id' => $myCat->id, 'account_id' => $myAcc->id,
+            'period'  => $month, 'amount' => 123,
         ]);
         Budget::create([
-            'user_id' => $them->id, 'category_id' => $theirCat->id,
-            'period'  => now()->startOfMonth()->toDateString(), 'amount' => 999,
+            'user_id' => $them->id, 'category_id' => $theirCat->id, 'account_id' => $theirAcc->id,
+            'period'  => $month, 'amount' => 999,
         ]);
 
-        $resp = $this->actingAs($me)->get(route('budgets.index'));
+        // Access index with period filter to see individual budgets in the new grouped UI
+        $resp = $this->actingAs($me)->get(route('budgets.index', ['period' => $monthQuery]));
         $resp->assertOk();
         $resp->assertSee('MineCat');
         $resp->assertDontSee('TheirCat');
@@ -141,10 +172,12 @@ class BudgetCrudTest extends TestCase
     {
         $me  = $this->verifiedUser();
         $cat = Category::create(['user_id' => $me->id, 'name' => 'Bills']);
+        $acc = $me->accounts()->first();
 
         $budget = Budget::create([
             'user_id' => $me->id,
             'category_id' => $cat->id,
+            'account_id' => $acc->id,
             'period' => now()->startOfMonth()->toDateString(),
             'amount' => 200,
         ]);
@@ -153,6 +186,7 @@ class BudgetCrudTest extends TestCase
 
         $this->actingAs($me)->put(route('budgets.update', $budget), [
             'category_id' => $cat->id,
+            'account_id'  => $acc->id,
             'period'      => $newMonth,
             'amount'      => 250,
         ])->assertRedirect(route('budgets.index'));
@@ -172,15 +206,20 @@ class BudgetCrudTest extends TestCase
         $them = $this->verifiedUser(['email' => 'them@example.com']);
 
         $cat = Category::create(['user_id' => $them->id, 'name' => 'Secret']);
+        $acc = $them->accounts()->first();
+        $myAcc = $me->accounts()->first();
+
         $others = Budget::create([
             'user_id' => $them->id,
             'category_id' => $cat->id,
+            'account_id' => $acc->id,
             'period' => now()->startOfMonth()->toDateString(),
             'amount' => 400,
         ]);
 
         $this->actingAs($me)->put(route('budgets.update', $others), [
             'category_id' => $cat->id,
+            'account_id'  => $myAcc->id,
             'period'      => now()->format('Y-m'),
             'amount'      => 1,
         ])->assertForbidden();
@@ -194,10 +233,12 @@ class BudgetCrudTest extends TestCase
     {
         $me  = $this->verifiedUser();
         $cat = Category::create(['user_id' => $me->id, 'name' => 'Trash']);
+        $acc = $me->accounts()->first();
 
         $budget = Budget::create([
             'user_id' => $me->id,
             'category_id' => $cat->id,
+            'account_id' => $acc->id,
             'period' => now()->startOfMonth()->toDateString(),
             'amount' => 50,
         ]);
@@ -213,10 +254,12 @@ class BudgetCrudTest extends TestCase
         $me   = $this->verifiedUser(['email' => 'me@example.com']);
         $them = $this->verifiedUser(['email' => 'them@example.com']);
         $cat  = Category::create(['user_id' => $them->id, 'name' => 'Keep']);
+        $acc  = $them->accounts()->first();
 
         $others = Budget::create([
             'user_id' => $them->id,
             'category_id' => $cat->id,
+            'account_id' => $acc->id,
             'period' => now()->startOfMonth()->toDateString(),
             'amount' => 77,
         ]);
