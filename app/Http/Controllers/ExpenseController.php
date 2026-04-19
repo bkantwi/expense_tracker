@@ -41,7 +41,12 @@ class ExpenseController extends Controller
     {
         // If user has no categories, encourage creating one first
         $categories = Category::where('user_id', Auth::id())->orderBy('name')->get(['id','name']);
-        return view('expenses.create', compact('categories'));
+        $accounts = \App\Models\Account::where('user_id', Auth::id())
+            ->where('archived', false)
+            ->orderBy('name')
+            ->get(['id','name','currency']);
+
+        return view('expenses.create', compact('categories','accounts'));
     }
 
     public function store(ExpenseRequest $request)
@@ -50,6 +55,7 @@ class ExpenseController extends Controller
             $expense = \App\Models\Expense::create([
                 'user_id'     => Auth::id(),
                 'category_id' => $request->category_id,
+                'account_id'  => $request->account_id,
                 'title'       => $request->title,
                 'amount'      => $request->amount,
                 'spent_at'    => $request->spent_at,
@@ -61,6 +67,7 @@ class ExpenseController extends Controller
                 \App\Models\Recurrence::create([
                     'user_id'     => Auth::id(),
                     'category_id' => $expense->category_id,
+                    'account_id'  => $expense->account_id,
                     'title'       => $expense->title,
                     'amount'      => $expense->amount,
                     'cadence'     => $request->input('recurrence_cadence', 'monthly'),
@@ -101,7 +108,12 @@ class ExpenseController extends Controller
     public function edit(Expense $expense)
     {
         $categories = Category::where('user_id', Auth::id())->orderBy('name')->get(['id','name']);
-        return view('expenses.edit', compact('expense','categories'));
+        $accounts = \App\Models\Account::where('user_id', Auth::id())
+            ->where('archived', false)
+            ->orderBy('name')
+            ->get(['id','name','currency']);
+
+        return view('expenses.edit', compact('expense','categories','accounts'));
     }
 
     public function update(ExpenseRequest $request, Expense $expense)

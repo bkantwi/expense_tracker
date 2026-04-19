@@ -51,19 +51,35 @@
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Category</label>
-                                <select name="category_id" required
-                                        class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
-                                    @foreach($categories as $c)
-                                        <option value="{{ $c->id }}" @selected(old('category_id', $expense->category_id) == $c->id)>
-                                            {{ $c->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('category_id')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Category</label>
+                                    <select name="category_id" required
+                                            class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                                        @foreach($categories as $c)
+                                            <option value="{{ $c->id }}" @selected(old('category_id', $expense->category_id) == $c->id)>
+                                                {{ $c->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('category_id')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Account</label>
+                                    <select name="account_id" required
+                                            class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                                        @foreach($accounts as $a)
+                                            <option value="{{ $a->id }}" @selected(old('account_id', $expense->account_id) == $a->id)>
+                                                {{ $a->name }} ({{ $a->currency }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('account_id')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
                             </div>
 
                             <div>

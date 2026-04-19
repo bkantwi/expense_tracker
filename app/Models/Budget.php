@@ -51,10 +51,14 @@ class Budget extends Model
         $start = $this->period->copy()->startOfMonth();
         $end   = $this->period->copy()->endOfMonth();
 
-        return (float) \App\Models\Expense::where('user_id', $this->user_id)
-            ->where('category_id', $this->category_id)
-            ->where('account_id', $this->account_id)
-            ->whereBetween('spent_at', [$start->toDateString(), $end->toDateString()])
+        $query = \App\Models\Expense::where('user_id', $this->user_id)
+            ->where('category_id', $this->category_id);
+
+        if ($this->account_id) {
+            $query->where('account_id', $this->account_id);
+        }
+
+        return (float) $query->whereBetween('spent_at', [$start->toDateString(), $end->toDateString()])
             ->sum('amount');
     }
 }

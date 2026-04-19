@@ -47,6 +47,7 @@ class RecurrenceRunner
                     Expense::create([
                         'user_id'     => $r->user_id,
                         'category_id' => $r->category_id,
+                        'account_id'  => $r->account_id,
                         'title'       => $r->title,
                         'amount'      => $r->amount,
                         'spent_at'    => $runFor->toDateString(),
