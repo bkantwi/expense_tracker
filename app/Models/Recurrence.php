@@ -10,7 +10,7 @@ class Recurrence extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id','category_id','account_id','title','amount',
+        'user_id','category_id','title','amount',
         'cadence','interval','next_run_on','last_run_on','ends_on',
         'notes','active',
     ];

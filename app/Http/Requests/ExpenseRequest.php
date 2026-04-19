@@ -19,7 +19,6 @@ class ExpenseRequest extends FormRequest
 
         return [
             'category_id' => ['required', Rule::exists('categories','id')->where(fn($q)=>$q->where('user_id',$uid))],
-            'account_id'  => ['required', Rule::exists('accounts','id')->where(fn($q)=>$q->where('user_id',$uid)->where('archived', false))],
             'title'       => ['required','string','max:255'],
             'amount'      => ['required','numeric','min:0.01','max:100000000'],
             'spent_at'    => ['required','date'],
@@ -47,7 +46,6 @@ class ExpenseRequest extends FormRequest
     {
         return [
             'category_id.exists' => 'Select one of your own categories.',
-            'account_id.exists'  => 'Select one of your own active accounts.',
         ];
     }
 }

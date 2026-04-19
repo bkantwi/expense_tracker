@@ -39,27 +39,15 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Category</label>
-                        <select name="category_id" required
-                                class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">Select category</option>
-                            @foreach($categories as $c)
-                                <option value="{{ $c->id }}" @selected(old('category_id') == $c->id)>{{ $c->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Account</label>
-                        <select name="account_id" required
-                                class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">Select account</option>
-                            @foreach($accounts as $a)
-                                <option value="{{ $a->id }}" @selected(old('account_id') == $a->id)>{{ $a->name }} ({{ $a->currency }})</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Category</label>
+                    <select name="category_id" required
+                            class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Select category</option>
+                        @foreach($categories as $c)
+                            <option value="{{ $c->id }}" @selected(old('category_id') == $c->id)>{{ $c->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div>
